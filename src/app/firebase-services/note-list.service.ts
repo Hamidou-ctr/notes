@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Note } from '../interfaces/note.interface';
-import { Firestore, addDoc, collection, collectionData, doc, onSnapshot, updateDoc } from '@angular/fire/firestore';
-
+import { Firestore, addDoc, collection, collectionData, deleteDoc, doc, onSnapshot, updateDoc, } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root'
@@ -14,8 +13,6 @@ export class NoteListService {
   unsubNotes;
   unsubTrash;
 
-
-
   firestore: Firestore = inject(Firestore);
 
   constructor() {
@@ -23,18 +20,22 @@ export class NoteListService {
     this.unsubTrash = this.subTrashList();
   }
 
+  async deleteNote(colId: "notes" | "trash", docId: string) {
+    await deleteDoc(this.getSingleDocRef(colId, docId)).catch((err) => {
+      console.log('Fehler beim Löschen des Dokuments: ', err);
+    });
+  }
+
   async updateNote(note: Note) {
     if(note.id){
       let docRef = this.getSingleDocRef(this.getColIdFromNote(note), note.id);
-      await updateDoc(docRef, this.getCleanJson(note)).catch(
-        (err) => {
-          console.log('Error updating document: ', err);
-        }
-      );
+      await updateDoc(docRef, this.getCleanJson(note)).catch((err) => {
+        console.log('Fehler beim Aktualisieren des Dokuments: ', err);
+      });
     }
   }
 
-  getCleanJson(note: Note):{} {
+  getCleanJson(note: Note): {} {
     return {
       type: note.type,
       title: note.title,
@@ -43,7 +44,7 @@ export class NoteListService {
     };
   }
 
-  getColIdFromNote(note:Note): string {
+  getColIdFromNote(note: Note): string {
     if(note.type == 'note'){
       return 'notes';
     } else {
@@ -51,14 +52,17 @@ export class NoteListService {
     }
   }
 
-
-
-  async addNote(item: Note) {
-    await addDoc(this.getNotesRef(), item).catch((err) => {
+  async addNote(item: Note, colId: "notes" | "trash") {
+    const collectionRef = this.getCollectionRef(colId);
+    await addDoc(collectionRef, item).catch((err) => {
       console.log(err);
     }).then((docRef) => {
-      console.log('documnet written with id: ', docRef?.id);
-      });
+      console.log('Dokument geschrieben mit ID: ', docRef?.id);
+    });
+  }
+
+  getCollectionRef(colId: "notes" | "trash") {
+    return collection(this.firestore, colId);
   }
 
   ngOnDestroy() {

@@ -5,8 +5,6 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NoteComponent } from './note/note.component';
 
-
-
 @Component({
   selector: 'app-note-list',
   standalone: true,
@@ -23,6 +21,9 @@ export class NoteListComponent {
   }
 
   getList(): Note[] {
+    if (this.status === 'trash') {
+      return this.noteService.trashNotes;
+    }
     return this.noteService.normalNotes;
   }
 
@@ -38,5 +39,4 @@ export class NoteListComponent {
       this.favFilter = "all";
     }
   }
-
 }

@@ -32,7 +32,8 @@ export class AddNoteDialogComponent {
       type: "note"
     };
 
-    this.noteService.addNote(note);
+    this.noteService.addNote(note, "notes");
     this.closeDialog();
+    console.log('Note added', note);
   }
 }
